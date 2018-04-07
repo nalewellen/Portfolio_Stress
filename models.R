@@ -15,6 +15,8 @@ ticks <- tibble(tickers = c("BAC","JPM","WFC", "AAPL", "MSFT","GOOG","NEE", "DUK
                            "Industrials", "Industrials", "Telecom", "Telecom" , "Materials", "Materials"))
 
 
+write_csv(ticks, "Tickers.csv")
+
 # Stock Data --------------------------------------------------------------
 
 prices  <- tq_get(ticks[1], get = "stock.prices", from = "1976-01-01")%>%
@@ -36,7 +38,8 @@ severely_adverse <- read_csv("severely_adverse.csv")%>%
     filter(`Scenario Name` == 'Supervisory Severely Adverse')
 
 fed_data <- bind_rows(actual, baseline, adverse, severely_adverse)%>%
-    mutate(quarter = quarter(date, with_year = TRUE))
+    mutate(quarter = quarter(Date,with_year = TRUE))%>%
+    select(-Date)
 fed_data$`Scenario Name` <- as.factor(fed_data$`Scenario Name`)
 
 # Join Data ----------------------------------------------------------------

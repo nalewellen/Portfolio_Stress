@@ -1,0 +1,23 @@
+tickers,sector
+BAC,Financials
+JPM,Financials
+WFC,Financials
+AAPL,Tech
+MSFT,Tech
+GOOG,Tech
+NEE,Utilities
+DUK,Utilities
+AMZN,Consumer Discretionary
+DIS,Consumer Discretionary
+PG,Consumer Staples
+KO,Consumer Staples
+XOM,Energy
+CVX,Energy
+JNJ,Healthcare
+UNH,Healthcare
+BA,Industrials
+MMM,Industrials
+VZ,Telecom
+T,Telecom
+DWDP,Materials
+MON,Materials
