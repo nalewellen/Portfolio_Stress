@@ -1,0 +1,52 @@
+---
+title: "Portfolio Stress Testing"
+author: "Nick Lewellen"
+date: "April 14, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(tidyverse)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Summary
+
+# The Data
+
+```{r ticks, echo=FALSE}
+
+ticks <- tibble(Tickers = c("BAC","JPM","WFC", "AAPL", "MSFT","GOOG","NEE", "DUK",
+                            "AMZN", "DIS", "PG", "KO", "XOM", "CVX", "JNJ", "UNH",
+                            "BA", "MMM", "VZ", "T", "DWDP", "MON"), 
+                Sector = c("Financials", "Financials", "Financials", 
+                           "Tech", "Tech", "Tech", "Utilities", "Utilities",
+                           "Consumer Discretionary", "Consumer Discretionary", "Consumer Staples",
+                           "Consumer Staples", "Energy", "Energy", "Healthcare", "Healthcare",
+                           "Industrials", "Industrials", "Telecom", "Telecom" , "Materials", "Materials"))
+
+
+kable(ticks, caption = "Tickers by Sector in Portfolio Stress Models", align=c(rep('c',times=2)))
+```
+
+
+
+```{r model_data, echo=FALSE}
+
+model_data <- read_csv("final data set.csv")
+
+kable(head(model_data), caption = "Tickers by Sector in Portfolio Stress Models")
+```
+
+
+
+# Models
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

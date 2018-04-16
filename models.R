@@ -1,50 +1,79 @@
 library(tidyverse)
 library(tidyquant)
 library(lubridate)
-library(recipes)
+library(fmsb)
+library(reshape2)
 
-# Ticker and Sector Tibble ------------------------------------------------
+# Load Data ------------------------------------------------
 
-ticks <- tibble(tickers = c("BAC","JPM","WFC", "AAPL", "MSFT","GOOG","NEE", "DUK",
-                            "AMZN", "DIS", "PG", "KO", "XOM", "CVX", "JNJ", "UNH",
-                            "BA", "MMM", "VZ", "T", "DWDP", "MON"), 
-                sector = c("Financials", "Financials", "Financials", 
-                           "Tech", "Tech", "Tech", "Utilities", "Utilities",
-                           "Consumer Discretionary", "Consumer Discretionary", "Consumer Staples",
-                           "Consumer Staples", "Energy", "Energy", "Healthcare", "Healthcare",
-                           "Industrials", "Industrials", "Telecom", "Telecom" , "Materials", "Materials"))
+model_data <- read_csv("final data set.csv")
 
+# APPL Model -----------------------------------------------
 
-write_csv(ticks, "Tickers.csv")
+test_data <- filter(model_data, tickers == "AAPL" | is.na(tickers) == TRUE)%>%
+    filter(`Scenario Name` == 'Actual')%>%
+    na.omit()
 
-# Stock Data --------------------------------------------------------------
+# Correlation test_data
 
-prices  <- tq_get(ticks[1], get = "stock.prices", from = "1976-01-01")%>%
-    select(tickers, date, close, volume)
+corr_test <- test_data%>%
+    dplyr::select(22:34, 36:37)
 
-prices <- prices%>%
-    mutate(quarter = quarter(date, with_year = TRUE))%>%
-    group_by(tickers, quarter)%>%
-    summarize(avg_price = mean(close, na.rm = TRUE), avg_volume = mean(volume, na.rm = TRUE))
+cormat <- round(cor(corr_test),2)
 
-# Fed Data ----------------------------------------------------------------
+melted_cormat <- melt(cormat)
 
-actual <- read_csv("actual.csv")
-baseline <- read_csv("baseline.csv")%>%
-    filter(`Scenario Name` == 'Supervisory Baseline')
-adverse <- read_csv("adverse.csv")%>%
-    filter(`Scenario Name` == 'Supervisory Adverse')
-severely_adverse <- read_csv("severely_adverse.csv")%>%
-    filter(`Scenario Name` == 'Supervisory Severely Adverse')
+ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile()
 
-fed_data <- bind_rows(actual, baseline, adverse, severely_adverse)%>%
-    mutate(quarter = quarter(Date,with_year = TRUE))%>%
-    select(-Date)
-fed_data$`Scenario Name` <- as.factor(fed_data$`Scenario Name`)
+# Make top model
 
-# Join Data ----------------------------------------------------------------
+min <- lm(avg_price_log ~ 1, data = test_data)
 
-data <- left_join(fed_data, prices, by = c("quarter"))
-    
-    
+names <- names(test_data)
+
+vars <- cat(paste0("`",names,"`") , sep = " + ")
+
+max <- lm(avg_price_log ~`10-year Treasury yield_log` + `Commercial Real Estate Price Index (Level)_log` + `Market Volatility Index (Level)_log`, data = test_data)
+
+summary(max)
+
+#final <- step(max, scope = c(min, max), direction = "both")
+final <- max
+
+summary(final)
+VIF(final)
+
+predict_data <- filter(model_data, tickers == "AAPL" | is.na(tickers) == TRUE)
+
+final_pred <- cbind(predict_data, yhat = predict(final, predict_data))%>%
+    dplyr::select(`Scenario Name`, tickers, quarter, yhat, avg_price_log)%>%
+    mutate(avg_price_level = exp(avg_price_log), hat_sd = StdDev(yhat),
+           avg_price_hat_level = exp(yhat))
+
+final_pred%>%
+    filter(`Scenario Name` == 'Actual')%>%
+    ggplot()+
+        geom_line(aes(x = quarter, y = avg_price_level), color = "Black", group = 1)+
+        geom_line(aes(x = quarter, y = avg_price_hat_level), color = "Red", group = 1)
+
+final_pred <- final_pred%>%
+    filter(quarter >= 2018.1)%>%
+    mutate(yhat = if_else(quarter == 2018.1, avg_price_log, yhat))
+
+final_pred <- final_pred%>%
+    mutate(avg_price_level = exp(avg_price_log), hat_sd = StdDev(yhat),
+           avg_price_hat_level = exp(yhat + (.5)*(hat_sd**2)))
+
+final_pred%>%
+    filter(`Scenario Name` == 'Actual')%>%
+    ggplot()+
+        geom_line(aes(x = quarter, y = avg_price_level), group = 1)+
+        geom_line(aes(x = quarter, y = avg_price_hat_level), group = 1)
+
+ggplot()+
+    geom_line(data = final_pred, aes(x = quarter, y = avg_price_level, color = `Scenario Name`, group = `Scenario Name`))+
+    geom_line(data = final_pred, aes(x = quarter, y = avg_price_hat_level, color = `Scenario Name`, group = `Scenario Name`))
+   
+
 

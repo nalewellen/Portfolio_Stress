@@ -57,7 +57,9 @@ data <- left_join(data, nber, by = c("quarter"))%>%
                             if_else(is.na(Stress) == TRUE & `Scenario Name` == 'Supervisory Adverse' ,0, Stress))))
 
 write_csv(data, "Model Data Set.csv")
-    
+
+data <- read_csv("Model Data Set.csv")
+
 # Preprocess Data ----------------------------------------------------------------
 
 #This creates variable transformations and preprocesses data. 
@@ -65,10 +67,13 @@ write_csv(data, "Model Data Set.csv")
 final_data <- data%>%
     group_by(tickers)%>%
     arrange(tickers, quarter)%>%
-    mutate_if(is.numeric, funs(lag = lag(.)))%>%
-    mutate_if(is.numeric, funs(log = log(.)))%>%
-    mutate_if(is.numeric, funs(diff = . - lag(.)))%>%
-    select(-Stress_lag,-Stress_log, -Stress_lag_diff, -Stress_lag_log, -Stress_diff, -Stress_log_diff, - Stress_lag_log_diff)
+    mutate_if(is.numeric, funs(log = log(.)))
+
+final_data <- left_join(final_data, nber, by = c("quarter"))%>%
+    mutate(Stress = if_else(is.na(Stress) == TRUE & `Scenario Name` == 'Supervisory Adverse', 1, 
+                            if_else(is.na(Stress) == TRUE & `Scenario Name` == 'Supervisory Baseline', 0, 
+                                    if_else(is.na(Stress) == TRUE & `Scenario Name` == 'Supervisory Severely Adverse' ,1, Stress))))%>%
+    select(-`Real disposable income growth_log`, -`Nominal GDP growth_log`, -`Real GDP growth_log`)
 
 write_csv(final_data, "final data set.csv")
 
