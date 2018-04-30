@@ -1,6 +1,5 @@
 ### Model Selection Algorithm
 
-<<<<<<< HEAD
 library(tidyverse)
 library(fmsb)
 library(MASS)
@@ -64,5 +63,3 @@ for(i in list_tickers){
     print(paste0(i," adjR-sq: " ,summary(models[[i]])$adj.r.squared))
     cat("\n")
     }
-=======
->>>>>>> 4165bb67c83272f303df35300ad25a1308ae93da
