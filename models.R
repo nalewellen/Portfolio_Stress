@@ -39,6 +39,7 @@ max <- lm(avg_price_log ~`10-year Treasury yield_log` + `Commercial Real Estate 
 summary(max)
 
 #final <- step(max, scope = c(min, max), direction = "both")
+
 final <- max
 
 summary(final)
@@ -73,7 +74,12 @@ final_pred%>%
 
 ggplot()+
     geom_line(data = final_pred, aes(x = quarter, y = avg_price_level, color = `Scenario Name`, group = `Scenario Name`))+
-    geom_line(data = final_pred, aes(x = quarter, y = avg_price_hat_level, color = `Scenario Name`, group = `Scenario Name`))
-   
+    geom_line(data = final_pred, aes(x = quarter, y = avg_price_hat_level, color = `Scenario Name`, group = `Scenario Name`))+
+    ggtitle("APPL Forecast by Scenario")+
+    theme_minimal()+
+    ylab("Average Quarterly Price")+
+    xlab("Quarter")
+
+
 
 
