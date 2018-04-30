@@ -8,7 +8,10 @@ output: pdf_document
 ```{r setup, include=FALSE}
 library(knitr)
 library(tidyverse)
+library(ggcorrplot)
+library(reshape2)
 knitr::opts_chunk$set(echo = TRUE)
+model_data <- read_csv("final data set.csv")
 ```
 
 # Summary
@@ -30,12 +33,23 @@ ticks <- tibble(Tickers = c("BAC","JPM","WFC", "AAPL", "MSFT","GOOG","NEE", "DUK
 kable(ticks, caption = "Tickers by Sector in Portfolio Stress Models", align=c(rep('c',times=2)))
 ```
 
+```{r, echo=FALSE}
 
+corr_test2 <- model_data%>%
+    dplyr::select(2:17,20:21)
+
+# Independent variable plots
+
+cormat2 <- round(cor(corr_test2, use = "complete.obs"),2)
+
+melted_cormat <- melt(cormat2)
+
+ggcorr(cormat2, nbreaks = 5)
+
+
+```
 
 ```{r model_data, echo=FALSE}
-
-model_data <- read_csv("final data set.csv")
-
 kable(head(model_data), caption = "Tickers by Sector in Portfolio Stress Models")
 ```
 
